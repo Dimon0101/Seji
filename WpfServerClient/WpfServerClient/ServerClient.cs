@@ -131,19 +131,47 @@ namespace WpfServerClient
                 }
                 else
                 {
-                    item = new ListViewItem()
+                    Window?.Dispatcher.Invoke(() =>
                     {
-                        Content = "*File sended*",
-                        HorizontalContentAlignment = HorizontalAlignment.Right
-                    };
+                                StackPanel panel = new StackPanel();
+                                panel.Orientation = Orientation.Horizontal;
+                                var bi = new BitmapImage();
+                                bi.BeginInit();
+                                bi.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                                bi.CacheOption = BitmapCacheOption.OnLoad;
+                                bi.UriSource = new Uri("fileicon.png", UriKind.RelativeOrAbsolute);
+                                bi.EndInit();
+                                Image img = new Image()
+                                {
+                                    Source = bi,
+                                    Height = 25,
+                                    Width = 25,
+                                };
 
-                    ShowFolder(item, filePath);
+                                panel.Children.Add(img);
+                                TextBlock text = new TextBlock()
+                                {
+                                    Text = " " + Path.GetFileName(filePath),
+                                    VerticalAlignment = VerticalAlignment.Center,
+                                };
+                                panel.Children.Add(text);
+                                item = new ListViewItem()
+                                {
+                                    Content = panel,
+                                    HorizontalAlignment = HorizontalAlignment.Right,
+                                };;
+
+                                OpenFile(item, filePath);
+
+                                Window?.lvChat?.Items.Add(item);
+                                Window?.lvChat?.ScrollIntoView(item);
+                                ShowFolder(item, filePath);
+                    });
                 }
 
-                Window?.lvChat?.Items.Add(item);
-                Window?.lvChat?.ScrollIntoView(item);
-
                 byte[] bExtension = Encoding.UTF8.GetBytes(extension);
+                byte[] bSecondUserName = Encoding.UTF8.GetBytes("aboba");
+                SendData(bSecondUserName);
                 SendData(bExtension);
                 SendData(message);
             }
@@ -304,11 +332,35 @@ namespace WpfServerClient
                         {
                             Window?.Dispatcher.Invoke(() =>
                             {
+                                StackPanel panel = new StackPanel();
+                                panel.Orientation = Orientation.Horizontal;
+                                var bi = new BitmapImage();
+                                bi.BeginInit();
+                                bi.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                                bi.CacheOption = BitmapCacheOption.OnLoad;
+                                bi.UriSource = new Uri("fileicon.png", UriKind.RelativeOrAbsolute);
+                                bi.EndInit();
+                                Image img = new Image()
+                                {
+                                    Source = bi,
+                                    Height = 25,
+                                    Width = 25,
+                                };
+                                
+                                panel.Children.Add(img);
+                                TextBlock text = new TextBlock()
+                                {
+                                    Text = " " + Path.GetFileName(filePath),
+                                    VerticalAlignment = VerticalAlignment.Center,
+                                };
+                                panel.Children.Add(text);
                                 item = new ListViewItem()
                                 {
-                                    Content = "*File recieved*"
+                                    Content = panel
                                 };
 
+                                OpenFile(item, filePath);
+                                
                                 Window?.lvChat?.Items.Add(item);
                                 Window?.lvChat?.ScrollIntoView(item);
                                 ShowFolder(item, filePath);
@@ -347,6 +399,14 @@ namespace WpfServerClient
             item.PreviewMouseRightButtonDown += (s, e) =>
             {
                 Process.Start("explorer.exe", $"/select,\"{filePath}\"");
+            };
+        }
+        private static void OpenFile(ListViewItem item, string filePath)
+        {
+            item.PreviewMouseLeftButtonDown += (s, e) =>
+            {
+                string file = Path.GetFileName(filePath);
+                Process.Start(new ProcessStartInfo(filePath) { UseShellExecute = true });
             };
         }
 
